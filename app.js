@@ -1,6 +1,15 @@
 const express = require('express');
-
+const mongoose = require("mongoose");
 const app = express();
+
+const Product = require('./models/products')
+
+const uri = "mongodb+srv://backend-user:backend@mlecoustre.ndcnk.mongodb.net/mlecoustre?retryWrites=true&w=majority";
+const client = mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true })
+    .then(()  => console.log('Connexion MongoDB réussie !'))
+    .catch(() => console.error('Connexion MongoDB échouée'));
+
+app.use(express.json());
 
 app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -22,12 +31,15 @@ app.get('/api/products/:id', (req, res, next) => {
 });
 
 app.post('/api/products', (req, res, next) => {
-    delete req.body._id;
-    const _product = new Product({
-        ...req.body
+    //delete req.body._id;
+    const product = new Product({
+        name:           req.body.name,
+        description:    req.body.description,
+        price:          parseInt(req.body.price),
+        inStock:        req.body.inStock
     });
-    _product.save()
-        .then(() => res.status(201).json({ product: _product }))
+    product.save()
+        .then(() => res.status(201).json({product: product }))
         .catch(error => res.status(400).json({ error }));
 });
 
@@ -42,8 +54,5 @@ app.delete('/api/products/:id', (req, res, next) => {
         .then(() => res.status(200).json({ message: 'Deleted' }))
         .catch(error => res.status(400).json({ error }));
 });
-
-
-
 
 module.exports = app;
